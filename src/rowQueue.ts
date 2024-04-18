@@ -183,18 +183,18 @@ export class RowQueue {
           }
         );
 
-        if (partialFailures.length > 0) {
-          err = new common.util.PartialFailureError({
+        if (err) {
+           this.stream.emit('error', err);
+        } else if (partialFailures.length > 0 ) {
+          const partialFailureErr = new common.util.PartialFailureError({
             errors: partialFailures,
             response: resp,
           } as GoogleErrorBody);
-
-          callbacks.forEach(callback => callback!(err, resp));
-          this.stream.emit('error', err);
+          callbacks.forEach(callback => callback!(partialFailureErr, resp));
+          this.stream.emit('error', partialFailureErr);
         } else {
           callbacks.forEach(callback => callback!(err, resp));
           this.stream.emit('response', resp);
-          cb?.(err, resp);
         }
         cb?.(err, resp);
       }
